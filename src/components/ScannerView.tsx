@@ -5,6 +5,7 @@ import BluetoothIcon from '@mui/icons-material/Bluetooth';
 import BluetoothSearchingIcon from '@mui/icons-material/BluetoothSearching';
 import BluetoothConnectedIcon from '@mui/icons-material/BluetoothConnected';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import BrowserNotSupportedIcon from '@mui/icons-material/BrowserNotSupported';
 
 import { ConnectionState } from '../lib/BLEConnectionManager';
 
@@ -15,11 +16,22 @@ interface Props {
 }
 
 export const ScannerView = ({ onScan, status, error }: Props) => {
+    const isBluetoothSupported = typeof window !== 'undefined' && 'bluetooth' in navigator;
+
     const isScanning = status === ConnectionState.SCANNING;
     const isConnecting = status === ConnectionState.CONNECTING;
     const isBusy = isScanning || isConnecting;
 
     const getStateConfig = () => {
+        if (!isBluetoothSupported) {
+            return {
+                icon: <BrowserNotSupportedIcon sx={{ fontSize: 60, color: 'text.disabled' }} />,
+                title: "Browser Not Supported",
+                desc: "Your current browser doesn't support WebBluetooth. Try something Blink-based.",
+                btnText: "Incompatible Browser",
+            };
+        }
+
         if (error) return {
             icon: <ErrorOutlineIcon sx={{ fontSize: 60, color: 'error.main' }} />,
             title: "Connection Failed",
@@ -123,23 +135,39 @@ export const ScannerView = ({ onScan, status, error }: Props) => {
                     </Fade>
                 )}
 
-                <Stack spacing={2}>
-                    <Button
-                        variant="contained"
-                        size="large"
-                        onClick={onScan}
-                        disabled={isBusy}
-                        fullWidth
-                        sx={{
-                            py: 1.5,
-                            fontWeight: 'bold',
-                            textTransform: 'none',
-                            fontSize: '1.1rem'
-                        }}
-                    >
-                        {config.btnText}
-                    </Button>
-                </Stack>
+                {!isBluetoothSupported && (
+                    <Box sx={{ mb: 3 }}>
+                        <img
+                            src="/webbluetooth.png"
+                            style={{
+                                width: '100%',
+                                borderRadius: '8px',
+                                border: '1px solid #e0e0e0'
+                            }}
+                        />
+                    </Box>
+                )}
+
+                {
+                    isBluetoothSupported &&
+                    <Stack spacing={2}>
+                        <Button
+                            variant="contained"
+                            size="large"
+                            onClick={onScan}
+                            disabled={isBusy}
+                            fullWidth
+                            sx={{
+                                py: 1.5,
+                                fontWeight: 'bold',
+                                textTransform: 'none',
+                                fontSize: '1.1rem'
+                            }}
+                        >
+                            {config.btnText}
+                        </Button>
+                    </Stack>
+                }
             </Paper>
         </Box>
     );
