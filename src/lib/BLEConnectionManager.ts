@@ -53,11 +53,11 @@ export class BLEConnectionManager {
     }
 
     private log(msg: string, data?: any) {
-        console.log(`[BLEManager] ${msg}`, data || '');
+        console.log(`[BLEConnectionManager] ${msg}`, data || '');
     }
 
     private error(msg: string, err?: any) {
-        console.error(`[BLEManager] ${msg}`, err || '');
+        console.error(`[BLEConnectionManager] ${msg}`, err || '');
     }
 
     async scanAndConnect() {
@@ -131,6 +131,7 @@ export class BLEConnectionManager {
         try {
             const server = await this.device.gatt?.connect();
             if (!server || !server.connected) {
+                // noinspection ExceptionCaughtLocallyJS
                 throw new Error("GATT Server connection failed immediately.");
             }
             this.log("GATT Connected");
@@ -149,7 +150,7 @@ export class BLEConnectionManager {
             this.rxChar.addEventListener('characteristicvaluechanged', (e: any) => {
                 try {
                     const p = VenusPacket.fromBytes(e.target.value);
-                    this.log(`RX: Cmd 0x${p.commandId.toString(16)}`);
+                    this.log(`RX: Cmd 0x${p.commandId.toString(16)}`, p.toBytes());
                     this.dispatchPacket(p);
                 } catch (err) {
                     console.warn("Parse Error:", err);

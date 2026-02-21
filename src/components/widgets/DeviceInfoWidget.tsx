@@ -13,36 +13,35 @@ import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputCompone
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
 import { CommandId } from '../../lib/VenusPacket';
-import { DeviceInfoPayload } from '../../lib/payloads/DeviceInfoPayload';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
 
 export const DeviceInfoWidget = () => {
     const { sendPacket, connectionState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
-    
-    const data = useVenusData(CommandId.DEVICE_INFO, DeviceInfoPayload);
-    
+
+    const data = useVenusData(CommandId.DEVICE_INFO);
+
     const [isRefreshing, setIsRefreshing] = useState(false);
-    
+
     const refresh = () => {
         if (isConnected) {
             setIsRefreshing(true);
             sendPacket(CommandId.DEVICE_INFO);
-            
+
             setTimeout(() => setIsRefreshing(false), 5000);
         }
     };
-    
+
     useEffect(() => {
         if (isConnected && !data) refresh();
     }, [isConnected]);
-    
+
     useEffect(() => {
         if (data) {
             setIsRefreshing(false);
         }
     }, [data]);
-    
+
     const InfoRow = ({ label, value, icon, isLast = false }: { label: string, value?: string, icon?: React.ReactNode, isLast?: boolean }) => (
         <Box
             display="flex"
@@ -68,8 +67,8 @@ export const DeviceInfoWidget = () => {
 
     return (
         <Paper elevation={3} sx={{ p: 0, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            
-            <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'primary.contrastText', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+            <Box sx={{ p: 2, minHeight: '72px', bgcolor: 'primary.main', color: 'primary.contrastText', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box display="flex" alignItems="center" gap={1}>
                     <InfoOutlinedIcon />
                     <Typography variant="h6" fontWeight="bold">Device Info</Typography>
@@ -94,7 +93,7 @@ export const DeviceInfoWidget = () => {
                     </span>
                 </Tooltip>
             </Box>
-            
+
             <Box sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: !data ? 'center' : 'flex-start' }}>
 
                 {!data ? (
@@ -111,7 +110,7 @@ export const DeviceInfoWidget = () => {
                 ) : (
                     <Fade in={true}>
                         <Stack spacing={3}>
-                            
+
                             <Box>
                                 <Chip label="Identity" size="small" color="primary" variant="outlined" sx={{ mb: 1, fontWeight: 'bold' }} />
                                 <InfoRow
@@ -131,7 +130,7 @@ export const DeviceInfoWidget = () => {
                                     isLast
                                 />
                             </Box>
-                            
+
                             <Box>
                                 <Chip label="Versions" size="small" color="secondary" variant="outlined" sx={{ mb: 1, fontWeight: 'bold' }} />
                                 <Grid container columnSpacing={4}>

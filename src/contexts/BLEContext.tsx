@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { BLEConnectionManager, ConnectionState } from '../lib/BLEConnectionManager';
 import {type DeviceInfo, parseDeviceName} from '../lib/DeviceUtils';
 import { VenusPacket } from '../lib/VenusPacket';
+import {VenusRegistry} from "../lib/payloads/VenusPayloads.ts";
+import type {VenusData, VenusPayloadStatic} from "../lib/payloads/VenusPayloads.ts";
 
 interface BLEContextType {
     manager: BLEConnectionManager;
@@ -94,24 +96,26 @@ export const useBLE = () => {
     return context;
 };
 
-
-export function useVenusData<T>(
-    commandId: number,
-    ParserClass: new (data: Uint8Array) => T
-): T | null {
-    const {manager} = useBLE();
-    const [data, setData] = useState<T | null>(null);
+export function useVenusData<ID extends keyof typeof VenusRegistry>(
+    commandId: ID,
+): VenusData<ID> | null {
+    const { manager } = useBLE();
+    const [data, setData] = useState<VenusData<ID> | null>(null);
 
     useEffect(() => {
         const handler = (packet: VenusPacket) => {
             if (packet.commandId === commandId) {
-                setData(new ParserClass(packet.payload));
+                const PayloadClass = VenusRegistry[commandId] as unknown as VenusPayloadStatic<VenusData<ID>>;
+
+                // Parse and update state
+                const parsed = PayloadClass.FROM_BYTES(packet.payload);
+                setData(parsed);
             }
         };
 
         manager.subscribe(commandId, handler);
         return () => manager.unsubscribe(commandId, handler);
-    }, [manager, commandId, ParserClass]);
+    }, [manager, commandId]);
 
     return data;
 }

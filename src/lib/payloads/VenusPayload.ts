@@ -1,5 +1,5 @@
 export abstract class VenusPayload {
-    abstract fromBytes(data: Uint8Array): void;
-
+    // static FROM_BYTES(bytes: Uint8Array): VenusPayload;
+    
     abstract toBytes(): Uint8Array;
 }
