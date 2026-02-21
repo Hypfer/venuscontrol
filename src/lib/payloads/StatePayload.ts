@@ -6,6 +6,7 @@ export interface StateAttributes {
     BackupPower: boolean;
     DischargePowerLimit: number;
     CTType: number; // As per CT_TYPE
+    Phase: number; // As per PHASE
     CTMode: number; // As per CT_MODE
 
     SurplusFeedIn?: boolean
@@ -31,7 +32,7 @@ export class StatePayload extends VenusPayload {
 
             DischargePowerLimit: view.getUint16(74, true),
             CTType: bytes[76],
-            
+            Phase: bytes[77],
             CTMode: bytes[78],
         };
         

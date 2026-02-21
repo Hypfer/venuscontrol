@@ -10,21 +10,23 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
-import { COMMAND_ID, CT_TYPE, CT_MODE } from '../../lib/VenusConst';
+import { COMMAND_ID, CT_TYPE, CT_MODE, PHASE } from '../../lib/VenusConst';
 import { CTTypeControlPayload } from '../../lib/payloads/CTTypeControlPayload';
 import { CTModeControlPayload } from '../../lib/payloads/CTModeControlPayload';
 
 const READINGS_REQUEST_PAYLOAD = new Uint8Array([0x0a, 0x0b, 0x0c]);
+const PHASE_DETECT_PAYLOAD = new Uint8Array([0x0a, 0x0b, 0x0c]);
 
 export const CTWidget = () => {
     const { sendPacket, connectionState, pollState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
-    
+
     const stateData = useVenusData(COMMAND_ID.STATE);
     const ctConnected = stateData?.attributes.CTConnected;
     const serverCtType = stateData?.attributes.CTType;
     const serverCtMode = stateData?.attributes.CTMode;
-    
+    const serverPhase = stateData?.attributes.Phase;
+
     const readingsData = useVenusData(COMMAND_ID.CT_READINGS);
 
     const [selectedType, setSelectedType] = useState<number | ''>('');
@@ -32,32 +34,34 @@ export const CTWidget = () => {
 
     const [isConfigBusy, setIsConfigBusy] = useState(false);
     const [isFetchingReadings, setIsFetchingReadings] = useState(false);
+    const [isDetectingPhase, setIsDetectingPhase] = useState(false);
 
     const configTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const busyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    
+    const detectPhaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     useEffect(() => {
         if (!isConfigBusy) {
             if (serverCtType !== undefined) setSelectedType(serverCtType);
             if (serverCtMode !== undefined) setSelectedMode(serverCtMode);
         }
     }, [serverCtType, serverCtMode, isConfigBusy]);
-    
+
     useEffect(() => {
         if (isFetchingReadings) {
             if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
             setIsFetchingReadings(false);
         }
     }, [readingsData]);
-    
+
     const handleTypeChange = async (event: SelectChangeEvent<number>) => {
         const newVal = event.target.value as number;
         if (!isConnected || isConfigBusy) return;
 
         setSelectedType(newVal);
         setIsConfigBusy(true);
-        
+
         if (busyTimeoutRef.current) {
             clearTimeout(busyTimeoutRef.current);
         }
@@ -102,13 +106,41 @@ export const CTWidget = () => {
         }
     };
 
+    const handleDetectPhase = async () => {
+        if (!isConnected || isDetectingPhase) {
+            return;
+        }
+
+        setIsDetectingPhase(true);
+
+        if (detectPhaseTimeoutRef.current) {
+            clearTimeout(detectPhaseTimeoutRef.current);
+        }
+        
+        detectPhaseTimeoutRef.current = setTimeout(() => {
+            setIsDetectingPhase(false);
+        }, 8_000); // A lie!
+
+        try {
+            await sendPacket(COMMAND_ID.PHASE_AUTODETECTION, PHASE_DETECT_PAYLOAD);
+            
+            setTimeout(() => pollState(), 2_000);
+        } catch (err) {
+            console.error("Failed to start phase detection", err);
+            if (detectPhaseTimeoutRef.current) {
+                clearTimeout(detectPhaseTimeoutRef.current);
+            }
+            setIsDetectingPhase(false);
+        }
+    };
+
     const fetchReadings = async () => {
         if (!isConnected || isFetchingReadings) {
             return;
         }
 
         setIsFetchingReadings(true);
-        
+
         if (fetchTimeoutRef.current) {
             clearTimeout(fetchTimeoutRef.current);
         }
@@ -128,6 +160,34 @@ export const CTWidget = () => {
     };
 
     const hasState = !!stateData;
+
+    const getPhaseLabel = (phase: number | undefined) => {
+        switch (phase) {
+            case PHASE.L1: 
+                return 'Connected to L1';
+            case PHASE.L2: 
+                return 'Connected to L2';
+            case PHASE.L3: 
+                return 'Connected to L3';
+            case PHASE.ERROR: 
+                return 'Detection Failed';
+            default: 
+                return `Unknown State (0x${phase?.toString(16) || '?'})`;
+        }
+    };
+
+    const getPhaseColor = (phase: number | undefined) => {
+        switch (phase) {
+            case PHASE.L1:
+            case PHASE.L2:
+            case PHASE.L3: 
+                return 'primary.main';
+            case PHASE.ERROR: 
+                return 'error.main';
+            default: 
+                return 'text.secondary';
+        }
+    };
 
     return (
         <Paper elevation={3} sx={{ p: 0, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -193,6 +253,40 @@ export const CTWidget = () => {
                                     Three Phase
                                 </ToggleButton>
                             </ToggleButtonGroup>
+                        </Box>
+
+                        <Box>
+                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                                <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                                    PHASE CONNECTION
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    startIcon={<AutorenewIcon sx={{ animation: (serverPhase === PHASE.SCANNING || isDetectingPhase) ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '100%': { transform: 'rotate(360deg)' } } }} />}
+                                    onClick={handleDetectPhase}
+                                    disabled={isDetectingPhase || serverPhase === PHASE.SCANNING || isConfigBusy}
+                                >
+                                    Auto-Detect Phase
+                                </Button>
+                            </Box>
+
+                            <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(0,0,0,0.02)' }}>
+                                {serverPhase === PHASE.SCANNING || isDetectingPhase ? (
+                                    <Box display="flex" alignItems="center" gap={1} color="warning.main">
+                                        <CircularProgress size={16} color="inherit" />
+                                        <Typography variant="body2" fontWeight="bold">Detecting Phase...</Typography>
+                                    </Box>
+                                ) : (
+                                    <Typography
+                                        variant="body1"
+                                        fontWeight="bold"
+                                        color={getPhaseColor(serverPhase)}
+                                    >
+                                        {getPhaseLabel(serverPhase)}
+                                    </Typography>
+                                )}
+                            </Paper>
                         </Box>
 
                         <Divider />

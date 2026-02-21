@@ -10,6 +10,8 @@ export const COMMAND_ID = Object.freeze({
     CT_MODE_CONTROL: 0x19,
     
     CT_READINGS: 0x1A,
+    
+    PHASE_AUTODETECTION: 0x1D,
 
     SURPLUS_FEED_IN_CONTROL: 0x41,
     BATTERY_MODULES_STATE: 0x42,
@@ -37,3 +39,16 @@ export const CT_MODE = Object.freeze({
 });
 
 export type CT_MODE = (typeof CT_MODE)[keyof typeof CT_MODE];
+
+export const PHASE = Object.freeze({
+    SCANNING: 0x00,
+    
+    L1: 0x01,
+    L2: 0x02,
+    L3: 0x03,
+    
+    // FIXME What is 0x04?
+    ERROR: 0x05,
+})
+
+export type PHASE = (typeof PHASE)[keyof typeof PHASE];
