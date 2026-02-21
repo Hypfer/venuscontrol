@@ -5,6 +5,7 @@ import { StateWidget } from '../widgets/StateWidget';
 import {TogglesWidget} from "../widgets/TogglesWidget.tsx";
 import {DepthOfDischargeWidget} from "../widgets/DepthOfDischargeWidget.tsx";
 import {DischargePowerLimitWidget} from "../widgets/DischargePowerLimitWidget.tsx";
+import {BatteryModulesStateWidget} from "../widgets/BatteryModulesStateWidget.tsx";
 
 export const VenusAView = () => {
     return (
@@ -15,6 +16,9 @@ export const VenusAView = () => {
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <StateWidget />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                    <BatteryModulesStateWidget />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <TogglesWidget />

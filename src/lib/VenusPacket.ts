@@ -7,6 +7,7 @@ export const CommandId = Object.freeze({
     DISCHARGE_POWER_LIMIT_CONTROL: 0x15,
 
     SURPLUS_FEED_IN_CONTROL: 0x41,
+    BATTERY_MODULES_STATE: 0x42,
     
     DEPTH_OF_DISCHARGE_CONTROL: 0x54,
     
