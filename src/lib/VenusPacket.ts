@@ -6,6 +6,9 @@ export const CommandId = Object.freeze({
     BACKUP_POWER_CONTROL: 0x0F,
 
     SURPLUS_FEED_IN_CONTROL: 0x41,
+    
+    DEPTH_OF_DISCHARGE_CONTROL: 0x54,
+    
     LED_CONTROL: 0x59
 })
 

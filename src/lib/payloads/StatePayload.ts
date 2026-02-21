@@ -4,6 +4,7 @@ export interface StateAttributes {
     BackupPower: boolean;
 
     SurplusFeedIn?: boolean
+    DepthOfDischarge?: number; // percent, also FIXME naming? The app calls it that, but it's a bad name
     LEDLight?: boolean;
 }
 
@@ -22,6 +23,7 @@ export class StatePayload extends VenusPayload {
         
         if (bytes.length > 110) {
             attrs.SurplusFeedIn = bytes[133] === 0x01;
+            attrs.DepthOfDischarge = bytes[149];
             attrs.LEDLight = bytes[152] === 0x01;
         }
 
