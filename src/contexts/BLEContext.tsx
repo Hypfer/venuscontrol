@@ -11,17 +11,17 @@ interface BLEContextType {
     deviceInfo: DeviceInfo | null;
     rssi: number | null;
     error: string | null;
-    
+
     connect: () => void;
     reconnect: () => void;
     disconnect: () => void;
     sendPacket: (cmd: number, payload?: Uint8Array) => Promise<void>;
+    pollState: () => void;
 }
 
 const BLEContext = createContext<BLEContextType | null>(null);
 
 export const BLEProvider = ({ children }: { children: React.ReactNode }) => {
-    // Lazy initialization ensures we don't create new Manager instances on every render
     const managerRef = useRef<BLEConnectionManager | null>(null);
     if (!managerRef.current) {
         managerRef.current = new BLEConnectionManager();
@@ -34,25 +34,24 @@ export const BLEProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const mgr = managerRef.current!;
-        
+
         mgr.onStateChange = (state, msg) => {
             setConnectionState(state);
 
             if (state === ConnectionState.ERROR && msg) {
                 setError(msg);
             }
-            
+
             if (state === ConnectionState.CONNECTED && mgr.device) {
                 setDeviceInfo(parseDeviceName(mgr.device.name || "Unknown"));
             }
         };
 
         mgr.onRSSI = (val) => setRssi(val);
-        
+
         return () => mgr.disconnect();
     }, []);
 
-    // Actions
     const connect = () => {
         setError(null);
         managerRef.current!.scanAndConnect();
@@ -71,6 +70,10 @@ export const BLEProvider = ({ children }: { children: React.ReactNode }) => {
         return managerRef.current!.sendPacket(cmd, p);
     };
 
+    const pollState = () => {
+        managerRef.current!.pollState();
+    }
+
     return (
         <BLEContext.Provider value={{
             manager: managerRef.current!,
@@ -81,7 +84,8 @@ export const BLEProvider = ({ children }: { children: React.ReactNode }) => {
             connect,
             reconnect,
             disconnect,
-            sendPacket
+            sendPacket,
+            pollState
         }}>
             {children}
         </BLEContext.Provider>
@@ -106,8 +110,6 @@ export function useVenusData<ID extends keyof typeof VenusRegistry>(
         const handler = (packet: VenusPacket) => {
             if (packet.commandId === commandId) {
                 const PayloadClass = VenusRegistry[commandId] as unknown as VenusPayloadStatic<VenusData<ID>>;
-
-                // Parse and update state
                 const parsed = PayloadClass.FROM_BYTES(packet.payload);
                 setData(parsed);
             }

@@ -1,6 +1,7 @@
 /// <reference types="web-bluetooth" />
 
-import { VenusPacket } from "./VenusPacket";
+import { VenusPacket, CommandId } from "./VenusPacket";
+import semaphore from 'semaphore';
 
 export const SERVICE_UUID = '0000ff00-0000-1000-8000-00805f9b34fb';
 export const TX_UUID = '0000ff01-0000-1000-8000-00805f9b34fb';
@@ -20,14 +21,17 @@ type PacketListener = (packet: VenusPacket) => void;
 
 export class BLEConnectionManager {
     public device: BluetoothDevice | null = null;
-    
-    private txChar: BluetoothRemoteGATTCharacteristic | null = null; 
+
+    private txChar: BluetoothRemoteGATTCharacteristic | null = null;
     private rxChar: BluetoothRemoteGATTCharacteristic | null = null;
-    
+
     public onStateChange: (state: ConnectionState, msg?: string) => void = () => {};
     public onRSSI: (rssi: number) => void = () => {};
-    
+
     private listeners: Map<number, PacketListener[]> = new Map();
+    
+    private pollTimer: ReturnType<typeof setTimeout> | null = null;
+    private pollMutex = semaphore(1);
 
     constructor() {}
 
@@ -58,6 +62,36 @@ export class BLEConnectionManager {
 
     private error(msg: string, err?: any) {
         console.error(`[BLEConnectionManager] ${msg}`, err || '');
+    }
+
+    private stopPolling() {
+        if (this.pollTimer) {
+            clearTimeout(this.pollTimer);
+            this.pollTimer = null;
+        }
+    }
+
+    private async doPoll() {
+        if (!this.device?.gatt?.connected) {
+            return;
+        }
+
+        try {
+            await this.sendPacket(CommandId.STATE);
+        } catch (err) {
+            console.warn("Poll failed", err);
+        }
+        
+        this.pollTimer = setTimeout(() => this.doPoll(), 5_000);
+    }
+
+    public pollState() {
+        if (this.pollTimer) {
+            clearTimeout(this.pollTimer);
+            this.pollTimer = null;
+        }
+            
+        this.doPoll();
     }
 
     async scanAndConnect() {
@@ -115,6 +149,8 @@ export class BLEConnectionManager {
 
     disconnect() {
         this.log("Disconnecting...");
+        this.stopPolling();
+
         if (this.device && this.device.gatt?.connected) {
             this.device.gatt.disconnect();
         } else {
@@ -138,13 +174,13 @@ export class BLEConnectionManager {
 
             this.log(`Getting Service ${SERVICE_UUID}...`);
             const service = await server.getPrimaryService(SERVICE_UUID);
-            
+
             this.log(`Getting TX Characteristic ${TX_UUID}...`);
             this.txChar = await service.getCharacteristic(TX_UUID);
-            
+
             this.log(`Getting RX Characteristic ${RX_UUID}...`);
             this.rxChar = await service.getCharacteristic(RX_UUID);
-            
+
             this.log("Starting Notifications on RX...");
             await this.rxChar.startNotifications();
             this.rxChar.addEventListener('characteristicvaluechanged', (e: any) => {
@@ -160,6 +196,8 @@ export class BLEConnectionManager {
             this.log("Connection Fully Established.");
             this.onStateChange(ConnectionState.CONNECTED);
 
+            this.doPoll();
+
         } catch (err: any) {
             this.error("Connection Sequence Failed", err);
             if (this.device?.gatt?.connected) {
@@ -172,24 +210,39 @@ export class BLEConnectionManager {
     async sendPacket(cmd: number, payload?: Uint8Array) {
         if (!this.txChar || !this.device?.gatt?.connected) {
             this.error("Cannot send: Not connected");
+
             throw new Error("Not connected");
         }
 
         const p = new VenusPacket(cmd, payload);
         const raw = p.toBytes();
 
-        this.log(`TX: Cmd 0x${cmd.toString(16)}`, raw);
+        return new Promise<void>((resolve, reject) => {
+            this.pollMutex.take(async () => {
+                try {
+                    if (!this.txChar || !this.device?.gatt?.connected) {
+                        // noinspection ExceptionCaughtLocallyJS
+                        throw new Error("Disconnected while waiting for lock");
+                    }
+                    
+                    this.log(`TX: Cmd 0x${cmd.toString(16)}`, raw);
 
-        try {
-            await this.txChar.writeValue(raw as BufferSource);
-        } catch (err) {
-            this.error("Write Failed", err);
-            throw err;
-        }
+                    await this.txChar.writeValue(raw as BufferSource);
+                    resolve();
+                } catch (err) {
+                    this.error("Write Failed", err);
+                    reject(err);
+                } finally {
+                    this.pollMutex.leave();
+                }
+            });
+        });
     }
 
     private handleDisconnect = () => {
         this.log("Device Disconnected Event fired");
+        this.stopPolling();
+
         this.txChar = null;
         this.rxChar = null;
         this.onStateChange(ConnectionState.DISCONNECTED);

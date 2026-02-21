@@ -45,7 +45,7 @@ export const ScannerView = ({ onScan, status, error }: Props) => {
             default:
                 return {
                     icon: <BluetoothIcon sx={{ fontSize: 60, color: 'primary.main' }} />,
-                    title: "Venus Control Center",
+                    title: "VenusControl",
                     desc: "Connect to a Marstek Venus storage to begin.",
                     btnText: "Start Scanning"
                 };

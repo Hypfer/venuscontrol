@@ -1,6 +1,12 @@
 export const CommandId = Object.freeze({
+    STATE: 0x03,
     DEVICE_INFO: 0x04,
-    FACTORY_RESET: 0x06
+    FACTORY_RESET: 0x06,
+    
+    BACKUP_POWER_CONTROL: 0x0F,
+
+    SURPLUS_FEED_IN_CONTROL: 0x41,
+    LED_CONTROL: 0x59
 })
 
 export type CommandId = (typeof CommandId)[keyof typeof CommandId];
