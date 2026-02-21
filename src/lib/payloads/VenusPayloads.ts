@@ -7,6 +7,9 @@ import {DepthOfDischargeControlPayload} from "./DepthOfDischargeControlPayload.t
 import {DischargePowerLimitControlPayload} from "./DischargePowerLimitControlPayload.ts";
 import {BatteryModulesStatePayload} from "./BatteryModulesStatePayload.ts";
 import {COMMAND_ID} from "../VenusConst.ts";
+import {CTReadingsPayload} from "./CTReadingsPayload.ts";
+import {CTTypeControlPayload} from "./CTTypeControlPayload.ts";
+import {CTModeControlPayload} from "./CTModeControlPayload.ts";
 
 export interface VenusPayloadStatic<T> {
     new (...args: any[]): any; 
@@ -19,6 +22,11 @@ export const VenusRegistry = {
     
     [COMMAND_ID.BACKUP_POWER_CONTROL]: BackupPowerControlPayload,
     [COMMAND_ID.DISCHARGE_POWER_LIMIT_CONTROL]: DischargePowerLimitControlPayload,
+    
+    [COMMAND_ID.CT_TYPE_CONTROL]: CTTypeControlPayload,
+    [COMMAND_ID.CT_MODE_CONTROL]: CTModeControlPayload,
+    
+    [COMMAND_ID.CT_READINGS]: CTReadingsPayload,
 
     [COMMAND_ID.SURPLUS_FEED_IN_CONTROL]: SurplusFeedInControlPayload,
     [COMMAND_ID.BATTERY_MODULES_STATE]: BatteryModulesStatePayload,
