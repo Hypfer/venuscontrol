@@ -5,6 +5,7 @@ import {LedControlPayload} from "./LedControlPayload.ts";
 import {BackupPowerControlPayload} from "./BackupPowerControlPayload.ts";
 import {SurplusFeedInControlPayload} from "./SurplusFeedInControlPayload.ts";
 import {DepthOfDischargeControlPayload} from "./DepthOfDischargeControlPayload.ts";
+import {DischargePowerLimitControlPayload} from "./DischargePowerLimitControlPayload.ts";
 
 export interface VenusPayloadStatic<T> {
     new (...args: any[]): any; 
@@ -16,6 +17,7 @@ export const VenusRegistry = {
     [CommandId.DEVICE_INFO]: DeviceInfoPayload,
     
     [CommandId.BACKUP_POWER_CONTROL]: BackupPowerControlPayload,
+    [CommandId.DISCHARGE_POWER_LIMIT_CONTROL]: DischargePowerLimitControlPayload,
 
     [CommandId.SURPLUS_FEED_IN_CONTROL]: SurplusFeedInControlPayload,
     [CommandId.DEPTH_OF_DISCHARGE_CONTROL]: DepthOfDischargeControlPayload,
