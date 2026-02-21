@@ -32,7 +32,7 @@ export class BLEConnectionManager {
     private listeners: Map<number, PacketListener[]> = new Map();
     
     private pollTimer: ReturnType<typeof setTimeout> | null = null;
-    private pollMutex = semaphore(1);
+    private txMutex = semaphore(1);
 
     constructor() {}
 
@@ -219,7 +219,7 @@ export class BLEConnectionManager {
         const raw = p.toBytes();
 
         return new Promise<void>((resolve, reject) => {
-            this.pollMutex.take(async () => {
+            this.txMutex.take(async () => {
                 try {
                     if (!this.txChar || !this.device?.gatt?.connected) {
                         // noinspection ExceptionCaughtLocallyJS
@@ -234,7 +234,10 @@ export class BLEConnectionManager {
                     this.error("Write Failed", err);
                     reject(err);
                 } finally {
-                    this.pollMutex.leave();
+                    // Might be nonsensical, but let's give the firmware some time maybe
+                    setTimeout(() => {
+                        this.txMutex.leave();
+                    }, 25);
                 }
             });
         });

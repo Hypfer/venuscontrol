@@ -10,6 +10,7 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
 import {COMMAND_ID} from "../../lib/VenusConst.ts";
+import {EvStation} from "@mui/icons-material";
 
 const REQUEST_PAYLOAD = new Uint8Array([0x01]);
 
@@ -38,6 +39,12 @@ export const BatteryModulesStateWidget = () => {
 
     const getStatusInfo = (status: number) => {
         switch (status) {
+            case 2:
+                return {
+                    label: "Discharging",
+                    icon: <EvStation fontSize="inherit" />,
+                    color: "warning.main"
+                };
             case 1:
                 return {
                     label: "Charging",

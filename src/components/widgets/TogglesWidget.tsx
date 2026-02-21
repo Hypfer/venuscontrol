@@ -110,7 +110,7 @@ export const TogglesWidget = () => {
                             </ListItemIcon>
                             <ListItemText
                                 primary="Backup Power"
-                                secondary="Keep supplying the inbuilt power outlet even when the grid is down"
+                                secondary="Controls the inbuilt power outlet"
                                 sx={{ mr: 2 }}
                             />
                             <Switch
