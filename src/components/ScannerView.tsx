@@ -1,0 +1,146 @@
+import {
+    Box, Button, Typography, Paper, CircularProgress, Alert, Fade, Stack
+} from '@mui/material';
+import BluetoothIcon from '@mui/icons-material/Bluetooth';
+import BluetoothSearchingIcon from '@mui/icons-material/BluetoothSearching';
+import BluetoothConnectedIcon from '@mui/icons-material/BluetoothConnected';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+
+import { ConnectionState } from '../lib/BLEConnectionManager';
+
+interface Props {
+    onScan: () => void;
+    status: ConnectionState;
+    error: string | null;
+}
+
+export const ScannerView = ({ onScan, status, error }: Props) => {
+    const isScanning = status === ConnectionState.SCANNING;
+    const isConnecting = status === ConnectionState.CONNECTING;
+    const isBusy = isScanning || isConnecting;
+
+    const getStateConfig = () => {
+        if (error) return {
+            icon: <ErrorOutlineIcon sx={{ fontSize: 60, color: 'error.main' }} />,
+            title: "Connection Failed",
+            desc: "Please ensure the device is powered on and in range.",
+            btnText: "Retry Scan"
+        };
+
+        switch (status) {
+            case ConnectionState.SCANNING:
+                return {
+                    icon: <BluetoothSearchingIcon sx={{ fontSize: 60, color: 'primary.main' }} />,
+                    title: "Searching...",
+                    desc: "Select a Marstek Venus storage",
+                    btnText: "Scanning..."
+                };
+            case ConnectionState.CONNECTING:
+                return {
+                    icon: <BluetoothConnectedIcon sx={{ fontSize: 60, color: 'warning.main' }} />,
+                    title: "Connecting...",
+                    desc: "Establishing GATT connection...",
+                    btnText: "Connecting..."
+                };
+            default:
+                return {
+                    icon: <BluetoothIcon sx={{ fontSize: 60, color: 'primary.main' }} />,
+                    title: "Venus Control Center",
+                    desc: "Connect to a Marstek Venus storage to begin.",
+                    btnText: "Start Scanning"
+                };
+        }
+    };
+
+    const config = getStateConfig();
+
+    return (
+        <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            minHeight="100vh"
+            bgcolor="#f4f6f8"
+        >
+            <Paper
+                elevation={4}
+                sx={{
+                    p: 5,
+                    textAlign: 'center',
+                    borderRadius: 4,
+                    maxWidth: 450,
+                    width: '100%',
+                    mx: 2
+                }}
+            >
+                <Box
+                    position="relative"
+                    display="inline-flex"
+                    mb={3}
+                    sx={{
+                        '&::after': isBusy ? {
+                            content: '""',
+                            position: 'absolute',
+                            top: -10, left: -10, right: -10, bottom: -10,
+                            border: '2px solid',
+                            borderColor: isScanning ? 'primary.light' : 'warning.light',
+                            borderRadius: '50%',
+                            animation: 'ripple 1.5s infinite ease-out',
+                        } : {},
+                        '@keyframes ripple': {
+                            '0%': { transform: 'scale(0.8)', opacity: 1 },
+                            '100%': { transform: 'scale(1.5)', opacity: 0 },
+                        }
+                    }}
+                >
+                    {isBusy && (
+                        <CircularProgress
+                            size={76}
+                            sx={{
+                                position: 'absolute',
+                                top: -8,
+                                left: -8,
+                                color: isScanning ? 'primary.main' : 'warning.main'
+                            }}
+                        />
+                    )}
+                    {config.icon}
+                </Box>
+
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    {config.title}
+                </Typography>
+
+                <Typography color="text.secondary" sx={{ mb: 4, minHeight: '48px' }}>
+                    {config.desc}
+                </Typography>
+                
+                {error && (
+                    <Fade in={!!error}>
+                        <Alert severity="error" sx={{ mb: 3, textAlign: 'left' }}>
+                            {error}
+                        </Alert>
+                    </Fade>
+                )}
+
+                <Stack spacing={2}>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        onClick={onScan}
+                        disabled={isBusy}
+                        fullWidth
+                        sx={{
+                            py: 1.5,
+                            fontWeight: 'bold',
+                            textTransform: 'none',
+                            fontSize: '1.1rem'
+                        }}
+                    >
+                        {config.btnText}
+                    </Button>
+                </Stack>
+            </Paper>
+        </Box>
+    );
+};
