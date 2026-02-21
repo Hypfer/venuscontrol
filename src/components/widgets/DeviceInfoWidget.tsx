@@ -12,21 +12,21 @@ import PowerIcon from '@mui/icons-material/Power';
 import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputComponent';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
-import { CommandId } from '../../lib/VenusPacket';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
+import {COMMAND_ID} from "../../lib/VenusConst.ts";
 
 export const DeviceInfoWidget = () => {
     const { sendPacket, connectionState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
 
-    const data = useVenusData(CommandId.DEVICE_INFO);
+    const data = useVenusData(COMMAND_ID.DEVICE_INFO);
 
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const refresh = () => {
         if (isConnected) {
             setIsRefreshing(true);
-            sendPacket(CommandId.DEVICE_INFO);
+            sendPacket(COMMAND_ID.DEVICE_INFO);
 
             setTimeout(() => setIsRefreshing(false), 5000);
         }

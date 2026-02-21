@@ -8,8 +8,8 @@ import BatteryChargingFullIcon from '@mui/icons-material/BatteryChargingFull';
 import BoltIcon from '@mui/icons-material/Bolt';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
-import { CommandId } from '../../lib/VenusPacket';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
+import {COMMAND_ID} from "../../lib/VenusConst.ts";
 
 const REQUEST_PAYLOAD = new Uint8Array([0x01]);
 
@@ -17,16 +17,16 @@ export const BatteryModulesStateWidget = () => {
     const { sendPacket, connectionState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
 
-    const data = useVenusData(CommandId.BATTERY_MODULES_STATE);
+    const data = useVenusData(COMMAND_ID.BATTERY_MODULES_STATE);
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
 
         if (isConnected) {
-            sendPacket(CommandId.BATTERY_MODULES_STATE, REQUEST_PAYLOAD).catch(() => {});
+            sendPacket(COMMAND_ID.BATTERY_MODULES_STATE, REQUEST_PAYLOAD).catch(() => {});
 
             interval = setInterval(() => {
-                sendPacket(CommandId.BATTERY_MODULES_STATE, REQUEST_PAYLOAD)
+                sendPacket(COMMAND_ID.BATTERY_MODULES_STATE, REQUEST_PAYLOAD)
                     .catch(e => console.error("Poll modules failed", e));
             }, 5000);
         }

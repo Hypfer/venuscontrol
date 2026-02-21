@@ -1,28 +1,12 @@
-export const CommandId = Object.freeze({
-    STATE: 0x03,
-    DEVICE_INFO: 0x04,
-    FACTORY_RESET: 0x06,
-    
-    BACKUP_POWER_CONTROL: 0x0F,
-    DISCHARGE_POWER_LIMIT_CONTROL: 0x15,
-
-    SURPLUS_FEED_IN_CONTROL: 0x41,
-    BATTERY_MODULES_STATE: 0x42,
-    
-    DEPTH_OF_DISCHARGE_CONTROL: 0x54,
-    
-    LED_CONTROL: 0x59
-})
-
-export type CommandId = (typeof CommandId)[keyof typeof CommandId];
+import type {COMMAND_ID} from "./VenusConst.ts";
 
 export class VenusPacket {
     static readonly MAGIC = 0x73;
 
-    public commandId: number;
+    public commandId: COMMAND_ID;
     public payload: Uint8Array;
 
-    constructor(commandId: number, payload: Uint8Array = new Uint8Array(0)) {
+    constructor(commandId: COMMAND_ID, payload: Uint8Array = new Uint8Array(0)) {
         this.commandId = commandId;
         this.payload = payload;
     }
@@ -83,6 +67,6 @@ export class VenusPacket {
         const cmd = bytes[3];
         const payload = bytes.subarray(4, bytes.length - 1);
 
-        return new VenusPacket(cmd, payload);
+        return new VenusPacket(cmd as COMMAND_ID, payload);
     }
 }

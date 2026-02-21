@@ -4,6 +4,7 @@ import {type DeviceInfo, parseDeviceName} from '../lib/DeviceUtils';
 import { VenusPacket } from '../lib/VenusPacket';
 import {VenusRegistry} from "../lib/payloads/VenusPayloads.ts";
 import type {VenusData, VenusPayloadStatic} from "../lib/payloads/VenusPayloads.ts";
+import {COMMAND_ID} from "../lib/VenusConst.ts";
 
 interface BLEContextType {
     manager: BLEConnectionManager;
@@ -15,7 +16,7 @@ interface BLEContextType {
     connect: () => void;
     reconnect: () => void;
     disconnect: () => void;
-    sendPacket: (cmd: number, payload?: Uint8Array) => Promise<void>;
+    sendPacket: (cmd: COMMAND_ID, payload?: Uint8Array) => Promise<void>;
     pollState: () => void;
 }
 
@@ -66,7 +67,7 @@ export const BLEProvider = ({ children }: { children: React.ReactNode }) => {
         managerRef.current!.disconnect();
     };
 
-    const sendPacket = (cmd: number, p?: Uint8Array) => {
+    const sendPacket = (cmd: COMMAND_ID, p?: Uint8Array) => {
         return managerRef.current!.sendPacket(cmd, p);
     };
 

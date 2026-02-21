@@ -4,14 +4,14 @@ import {
 import SpeedIcon from '@mui/icons-material/Speed';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
-import { CommandId } from '../../lib/VenusPacket';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
+import {COMMAND_ID} from "../../lib/VenusConst.ts";
 
 export const StateWidget = () => {
     const { connectionState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
     
-    const data = useVenusData(CommandId.STATE);
+    const data = useVenusData(COMMAND_ID.STATE);
 
     return (
         <Paper elevation={3} sx={{ p: 0, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

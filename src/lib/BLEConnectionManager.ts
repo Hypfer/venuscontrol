@@ -1,7 +1,8 @@
 /// <reference types="web-bluetooth" />
 
-import { VenusPacket, CommandId } from "./VenusPacket";
+import { VenusPacket } from "./VenusPacket";
 import semaphore from 'semaphore';
+import {COMMAND_ID} from "./VenusConst.ts";
 
 export const SERVICE_UUID = '0000ff00-0000-1000-8000-00805f9b34fb';
 export const TX_UUID = '0000ff01-0000-1000-8000-00805f9b34fb';
@@ -77,7 +78,7 @@ export class BLEConnectionManager {
         }
 
         try {
-            await this.sendPacket(CommandId.STATE);
+            await this.sendPacket(COMMAND_ID.STATE);
         } catch (err) {
             console.warn("Poll failed", err);
         }
@@ -207,7 +208,7 @@ export class BLEConnectionManager {
         }
     }
 
-    async sendPacket(cmd: number, payload?: Uint8Array) {
+    async sendPacket(cmd: COMMAND_ID, payload?: Uint8Array) {
         if (!this.txChar || !this.device?.gatt?.connected) {
             this.error("Cannot send: Not connected");
 

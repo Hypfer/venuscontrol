@@ -8,17 +8,17 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
-import { CommandId } from '../../lib/VenusPacket';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
 import { LedControlPayload } from '../../lib/payloads/LedControlPayload';
 import { BackupPowerControlPayload } from "../../lib/payloads/BackupPowerControlPayload";
 import { SurplusFeedInControlPayload } from "../../lib/payloads/SurplusFeedInControlPayload";
+import {COMMAND_ID} from "../../lib/VenusConst.ts";
 
 export const TogglesWidget = () => {
     const { sendPacket, connectionState, pollState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
 
-    const stateData = useVenusData(CommandId.STATE);
+    const stateData = useVenusData(COMMAND_ID.STATE);
 
     const [ledControlBusy, setLedControlBusy] = useState(false);
     const [backupPowerBusy, setBackupPowerBusy] = useState(false);
@@ -49,7 +49,7 @@ export const TogglesWidget = () => {
         setBackupPowerBusy(true);
         try {
             const payload = new BackupPowerControlPayload(checked);
-            await sendPacket(CommandId.BACKUP_POWER_CONTROL, payload.toBytes());
+            await sendPacket(COMMAND_ID.BACKUP_POWER_CONTROL, payload.toBytes());
 
             pollState();
         } catch (err) {
@@ -64,7 +64,7 @@ export const TogglesWidget = () => {
         setLedControlBusy(true);
         try {
             const payload = new LedControlPayload(checked);
-            await sendPacket(CommandId.LED_CONTROL, payload.toBytes());
+            await sendPacket(COMMAND_ID.LED_CONTROL, payload.toBytes());
 
             pollState();
         } catch (err) {
@@ -79,7 +79,7 @@ export const TogglesWidget = () => {
         setSurplusFeedInBusy(true);
         try {
             const payload = new SurplusFeedInControlPayload(checked);
-            await sendPacket(CommandId.SURPLUS_FEED_IN_CONTROL, payload.toBytes());
+            await sendPacket(COMMAND_ID.SURPLUS_FEED_IN_CONTROL, payload.toBytes());
 
             pollState();
         } catch (err) {

@@ -6,9 +6,9 @@ import BatterySaverIcon from '@mui/icons-material/BatterySaver';
 import BlockIcon from '@mui/icons-material/Block';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
-import { CommandId } from '../../lib/VenusPacket';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
 import { DepthOfDischargeControlPayload } from '../../lib/payloads/DepthOfDischargeControlPayload';
+import {COMMAND_ID} from "../../lib/VenusConst.ts";
 
 interface Props {
     min?: number;
@@ -19,7 +19,7 @@ export const DepthOfDischargeWidget = ({ min = 30, max = 88 }: Props) => {
     const { sendPacket, connectionState, pollState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
 
-    const stateData = useVenusData(CommandId.STATE);
+    const stateData = useVenusData(COMMAND_ID.STATE);
     const serverValue = stateData?.attributes.DepthOfDischarge;
 
     const isSyncing = !stateData && isConnected;
@@ -78,7 +78,7 @@ export const DepthOfDischargeWidget = ({ min = 30, max = 88 }: Props) => {
 
         try {
             const payload = new DepthOfDischargeControlPayload(val);
-            await sendPacket(CommandId.DEPTH_OF_DISCHARGE_CONTROL, payload.toBytes());
+            await sendPacket(COMMAND_ID.DEPTH_OF_DISCHARGE_CONTROL, payload.toBytes());
             
             pollState();
         } catch (err) {

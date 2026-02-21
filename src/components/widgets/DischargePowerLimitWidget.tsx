@@ -6,9 +6,9 @@ import {
 import BoltIcon from '@mui/icons-material/Bolt';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
-import { CommandId } from '../../lib/VenusPacket';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
 import { DischargePowerLimitControlPayload } from '../../lib/payloads/DischargePowerLimitControlPayload';
+import {COMMAND_ID} from "../../lib/VenusConst.ts";
 
 interface Props {
     option1?: number; 
@@ -19,7 +19,7 @@ export const DischargePowerLimitWidget = ({ option1 = 800, option2 = 1200 }: Pro
     const { sendPacket, connectionState, pollState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
 
-    const stateData = useVenusData(CommandId.STATE);
+    const stateData = useVenusData(COMMAND_ID.STATE);
     const serverValue = stateData?.attributes.DischargePowerLimit;
     
     const [selectedValue, setSelectedValue] = useState<number | null>(null);
@@ -64,7 +64,8 @@ export const DischargePowerLimitWidget = ({ option1 = 800, option2 = 1200 }: Pro
 
         try {
             const payload = new DischargePowerLimitControlPayload(newVal);
-            await sendPacket(CommandId.DISCHARGE_POWER_LIMIT_CONTROL, payload.toBytes());
+            await sendPacket(COMMAND_ID.DISCHARGE_POWER_LIMIT_CONTROL, payload.toBytes());
+
             pollState();
         } catch (err) {
             console.error("Failed to set export limit", err);

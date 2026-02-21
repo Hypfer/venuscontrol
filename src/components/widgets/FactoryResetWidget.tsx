@@ -10,9 +10,9 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import { useBLE } from '../../contexts/BLEContext';
-import { CommandId } from '../../lib/VenusPacket';
 import { FactoryResetPayload, FactoryResetType } from '../../lib/payloads/FactoryResetPayload';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
+import {COMMAND_ID} from "../../lib/VenusConst.ts";
 
 export const FactoryResetWidget = () => {
     const { sendPacket, disconnect, connectionState } = useBLE();
@@ -35,7 +35,7 @@ export const FactoryResetWidget = () => {
         }
 
         try {
-            await sendPacket(CommandId.FACTORY_RESET, new FactoryResetPayload(selectedType).toBytes());
+            await sendPacket(COMMAND_ID.FACTORY_RESET, new FactoryResetPayload(selectedType).toBytes());
 
             setToast({
                 msg: "Factory reset command sent. Disconnecting...",
