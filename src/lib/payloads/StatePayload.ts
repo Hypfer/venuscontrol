@@ -36,7 +36,8 @@ export interface StateAttributes {
     UnknownPower03?: number;
     GridPower?: number;
     UnknownPower05?: number;
-    
+
+    BLEDisabled?: boolean;
     DepthOfDischarge?: number; // percent, also FIXME naming? The app calls it that, but it's a bad name
     LEDLight?: boolean;
 }
@@ -93,7 +94,7 @@ export class StatePayload extends VenusPayload {
             
             attrs.UnknownPower05 = view.getInt16(146, true);
 
-            
+            attrs.BLEDisabled = bytes[148] === 0x01;
             attrs.DepthOfDischarge = bytes[149];
             attrs.LEDLight = bytes[152] === 0x01;
         }
