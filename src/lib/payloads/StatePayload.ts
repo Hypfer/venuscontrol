@@ -19,6 +19,8 @@ export interface StateAttributes {
     MonthlyEnergyIn: number;
     MonthlyEnergyOut: number;
     
+    WorkMode: number; // As per WORK_MODE
+    
     TotalEnergyIn: number;
     TotalEnergyOut: number;
 
@@ -64,6 +66,8 @@ export class StatePayload extends VenusPayload {
             MonthlyEnergyIn: view.getUint32(18, true),
             DailyEnergyOut: view.getUint32(22, true),
             MonthlyEnergyOut: view.getUint32(26, true),
+            
+            WorkMode: bytes[38],
 
             TotalEnergyIn: view.getUint32(41, true),
             TotalEnergyOut: view.getUint32(45, true),

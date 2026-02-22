@@ -7,6 +7,7 @@ import { DepthOfDischargeWidget } from "../widgets/DepthOfDischargeWidget.tsx";
 import { DischargePowerLimitWidget } from "../widgets/DischargePowerLimitWidget.tsx";
 import { BatteryModulesStateWidget } from "../widgets/BatteryModulesStateWidget.tsx";
 import { CTWidget } from "../widgets/CTWidget.tsx";
+import { WorkModeWidget } from "../widgets/WorkModeWidget.tsx";
 
 export const VenusAView = () => {
     return (
@@ -17,6 +18,9 @@ export const VenusAView = () => {
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <BatteryModulesStateWidget />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                    <WorkModeWidget scheduleItemMaxPower={1200} scheduleItemUPSSupported={true} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <CTWidget />

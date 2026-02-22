@@ -10,6 +10,8 @@ import {COMMAND_ID} from "../VenusConst.ts";
 import {CTReadingsPayload} from "./CTReadingsPayload.ts";
 import {CTTypeControlPayload} from "./CTTypeControlPayload.ts";
 import {CTModeControlPayload} from "./CTModeControlPayload.ts";
+import {SetWorkModePayload} from "./SetWorkModePayload.ts";
+import {GetWorkModeSettingsPayload} from "./GetWorkModeSettingsPayload.ts";
 
 export interface VenusPayloadStatic<T> {
     new (...args: any[]): any; 
@@ -19,6 +21,9 @@ export interface VenusPayloadStatic<T> {
 export const VenusRegistry = {
     [COMMAND_ID.STATE]: StatePayload,
     [COMMAND_ID.DEVICE_INFO]: DeviceInfoPayload,
+
+    [COMMAND_ID.SET_WORK_MODE]: SetWorkModePayload,
+    [COMMAND_ID.GET_WORK_MODE_SETTINGS]: GetWorkModeSettingsPayload,
     
     [COMMAND_ID.BACKUP_POWER_CONTROL]: BackupPowerControlPayload,
     [COMMAND_ID.DISCHARGE_POWER_LIMIT_CONTROL]: DischargePowerLimitControlPayload,
