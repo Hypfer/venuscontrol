@@ -13,7 +13,7 @@ import { ConnectionState } from '../../lib/BLEConnectionManager';
 import { LedControlPayload } from '../../lib/payloads/LedControlPayload';
 import { BackupPowerControlPayload } from "../../lib/payloads/BackupPowerControlPayload";
 import { SurplusFeedInControlPayload } from "../../lib/payloads/SurplusFeedInControlPayload";
-import { BluetoothDisableControlPayload } from "../../lib/payloads/BluetoothDisableControlPayload";
+import { BluetoothControlPayload } from "../../lib/payloads/BluetoothControlPayload.ts";
 import { COMMAND_ID } from "../../lib/VenusConst.ts";
 
 export const TogglesWidget = () => {
@@ -25,7 +25,7 @@ export const TogglesWidget = () => {
     const [ledControlBusy, setLedControlBusy] = useState(false);
     const [backupPowerBusy, setBackupPowerBusy] = useState(false);
     const [surplusFeedInBusy, setSurplusFeedInBusy] = useState(false);
-    const [bluetoothDisableBusy, setBluetoothDisableBusy] = useState(false);
+    const [bluetoothControlBusy, setBluetoothControlBusy] = useState(false);
 
     const hasState = !!stateData;
 
@@ -37,15 +37,15 @@ export const TogglesWidget = () => {
     const surplusFeedInSupported = stateData?.attributes.SurplusFeedIn !== undefined;
     const surplusFeedInOn = stateData?.attributes.SurplusFeedIn;
 
-    const bluetoothDisableSupported = stateData?.attributes.BLEDisabled !== undefined;
-    const bluetoothDisabled = stateData?.attributes.BLEDisabled;
+    const bluetoothControlSupported = stateData?.attributes.BluetoothEnabled !== undefined;
+    const bluetoothEnabled = stateData?.attributes.BluetoothEnabled;
 
     useEffect(() => {
         if (stateData) {
             setBackupPowerBusy(false);
             setLedControlBusy(false);
             setSurplusFeedInBusy(false);
-            setBluetoothDisableBusy(false);
+            setBluetoothControlBusy(false);
         }
     }, [stateData]);
 
@@ -94,20 +94,20 @@ export const TogglesWidget = () => {
         }
     };
 
-    const handleBluetoothDisableToggle = async (_: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
-        if (!isConnected || bluetoothDisableBusy) {
+    const handleBluetoothControlToggle = async (_: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+        if (!isConnected || bluetoothControlBusy) {
             return;
         }
 
-        setBluetoothDisableBusy(true);
+        setBluetoothControlBusy(true);
         try {
-            const payload = new BluetoothDisableControlPayload(checked);
-            await sendPacket(COMMAND_ID.BLUETOOTH_DISABLE_CONTROL, payload.toBytes());
+            const payload = new BluetoothControlPayload(checked);
+            await sendPacket(COMMAND_ID.BLUETOOTH_CONTROL, payload.toBytes());
 
             pollState();
         } catch (err) {
             console.error("Failed to toggle Bluetooth state", err);
-            setBluetoothDisableBusy(false);
+            setBluetoothControlBusy(false);
         }
     };
 
@@ -183,23 +183,22 @@ export const TogglesWidget = () => {
 
                         <ListItem divider>
                             <ListItemIcon>
-                                <BluetoothIcon color={bluetoothDisabled && bluetoothDisableSupported ? "warning" : "disabled"} />
+                                <BluetoothIcon color={bluetoothEnabled && bluetoothControlSupported ? "warning" : "disabled"} />
                             </ListItemIcon>
                             <ListItemText
-                                primary="Disable Bluetooth"
+                                primary="Bluetooth"
                                 secondary={
-                                    !bluetoothDisableSupported ? 
+                                    !bluetoothControlSupported ? 
                                         "Not supported by the current FW version" : 
-                                        "Once disabled, to connect again, power-cycling the device will make it accessible via BLE again for 10 minutes." +
-                                        "\nWARNING: During my testing, the functionality felt quite broken, requiring power cycles after each toggle to be applied properly."
+                                        "Once disabled, to connect again, power-cycling the device will make it accessible via BLE again for 10 minutes."
                                 }
                                 sx={{ mr: 2 }}
                             />
                             <Switch
                                 edge="end"
-                                checked={bluetoothDisabled}
-                                onChange={handleBluetoothDisableToggle}
-                                disabled={!isConnected || !bluetoothDisableSupported || bluetoothDisableBusy}
+                                checked={bluetoothEnabled}
+                                onChange={handleBluetoothControlToggle}
+                                disabled={!isConnected || !bluetoothControlSupported || bluetoothControlBusy}
                                 color="warning"
                             />
                         </ListItem>
