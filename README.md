@@ -1,5 +1,7 @@
 # Venuscontrol
 
+<img height="700" src="https://github.com/user-attachments/assets/4b7f0019-0526-41d0-9d26-fb07061e5b72" />
+
 This is a reimplementation of https://github.com/rweijnen/marstek-venus-monitor without the insufferable agentic LLM noise.
 It still is utilizing LLMs for development, but with a human in the loop to increase sanity.
 
