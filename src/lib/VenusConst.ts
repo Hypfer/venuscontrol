@@ -52,3 +52,15 @@ export const PHASE = Object.freeze({
 })
 
 export type PHASE = (typeof PHASE)[keyof typeof PHASE];
+
+export const INVERTER_STATE = Object.freeze({
+    SLEEP: 0x00,
+    STANDBY: 0x01,
+    CHARGE: 0x02,
+    DISCHARGE: 0x03,
+    BACKUP: 0x04,
+    OTA: 0x05,
+    BYPASS: 0x06,
+});
+
+export type INVERTER_STATE = (typeof INVERTER_STATE)[keyof typeof INVERTER_STATE];

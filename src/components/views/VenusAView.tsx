@@ -13,16 +13,13 @@ export const VenusAView = () => {
         <Box sx={{ p: 3 }}>
             <Grid container spacing={3}>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-                    <DeviceInfoWidget />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <StateWidget />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-                    <CTWidget />
+                    <BatteryModulesStateWidget />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-                    <BatteryModulesStateWidget />
+                    <CTWidget />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <TogglesWidget />
@@ -32,6 +29,9 @@ export const VenusAView = () => {
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <DischargePowerLimitWidget option1={800} option2={1200} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                    <DeviceInfoWidget />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <FactoryResetWidget />

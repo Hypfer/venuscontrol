@@ -3,7 +3,7 @@ import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import { ConnectionState } from '../lib/BLEConnectionManager';
-import type {DeviceInfo} from "../lib/DeviceUtils.ts";
+import type { DeviceInfo } from "../lib/DeviceUtils.ts";
 
 interface Props {
     deviceInfo: DeviceInfo;
@@ -15,14 +15,14 @@ interface Props {
 
 export const DeviceTopBar = ({ deviceInfo, status, rssi, onDisconnect, onReconnect }: Props) => {
     const isConnected = status === ConnectionState.CONNECTED;
-    
+
     let chipColor: "success" | "error" | "warning" | "default" = "default";
     if (isConnected) chipColor = "success";
     if (status === ConnectionState.CONNECTING) chipColor = "warning";
     if (status === ConnectionState.DISCONNECTED) chipColor = "error";
 
     return (
-        <AppBar position="static" color="default" elevation={1}>
+        <AppBar position="sticky" color="default" elevation={1}>
             <Toolbar>
                 <Box sx={{ flexGrow: 1 }}>
                     <Typography variant="h6" lineHeight={1.2}>
@@ -32,7 +32,7 @@ export const DeviceTopBar = ({ deviceInfo, status, rssi, onDisconnect, onReconne
                         ID: {deviceInfo.id}
                     </Typography>
                 </Box>
-                
+
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 2 }}>
                     {rssi && (
                         <Box display="flex" alignItems="center" color="text.secondary" title="RSSI">
@@ -48,7 +48,7 @@ export const DeviceTopBar = ({ deviceInfo, status, rssi, onDisconnect, onReconne
                         variant={isConnected ? "filled" : "outlined"}
                     />
                 </Box>
-                
+
                 {isConnected ? (
                     <Button
                         variant="outlined"

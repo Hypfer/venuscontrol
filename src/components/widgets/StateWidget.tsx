@@ -1,41 +1,187 @@
 import {
-    Paper, Typography, Box, CircularProgress
+    Paper, Typography, Box, CircularProgress, Chip, Stack, Divider, Grid
 } from '@mui/material';
 import SpeedIcon from '@mui/icons-material/Speed';
+import BatteryStdIcon from '@mui/icons-material/BatteryStd';
+import ElectricMeterIcon from '@mui/icons-material/ElectricMeter';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import SyncAltIcon from '@mui/icons-material/SyncAlt';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
-import {COMMAND_ID} from "../../lib/VenusConst.ts";
+import { COMMAND_ID, INVERTER_STATE } from "../../lib/VenusConst.ts";
+
+const getInverterStateLabel = (state?: number) => {
+    switch (state) {
+        case INVERTER_STATE.SLEEP: return 'Sleep';
+        case INVERTER_STATE.STANDBY: return 'Standby';
+        case INVERTER_STATE.CHARGE: return 'Charging';
+        case INVERTER_STATE.DISCHARGE: return 'Discharging';
+        case INVERTER_STATE.BACKUP: return 'Backup';
+        case INVERTER_STATE.OTA: return 'OTA Update';
+        case INVERTER_STATE.BYPASS: return 'Bypass';
+        default: return state !== undefined ? `Unknown (0x${state.toString(16)})` : 'Unknown';
+    }
+};
+
+const getInverterStateColor = (state?: number) => {
+    switch (state) {
+        case INVERTER_STATE.CHARGE: return 'success.main';
+        case INVERTER_STATE.DISCHARGE: return 'warning.main';
+        case INVERTER_STATE.BACKUP: return 'error.main';
+        case INVERTER_STATE.STANDBY:
+        case INVERTER_STATE.SLEEP: return 'text.secondary';
+        default: return 'primary.main';
+    }
+};
+
+const formatKWh = (val: number | undefined, div: number = 1000) =>
+    val !== undefined ? `${(val / div).toFixed(2)} kWh` : '--';
+
+const formatW = (val: number | undefined) =>
+    val !== undefined ? `${val} W` : '--';
+
+const formatPct = (val: number | undefined) =>
+    val !== undefined ? `${val}%` : '--';
+
+const ReadingRow = ({ label, value, icon, isLast = false }: { label: string, value: string, icon?: React.ReactNode, isLast?: boolean }) => (
+    <Box display="flex" justifyContent="space-between" alignItems="center" py={1.5} sx={{ borderBottom: isLast ? 'none' : '1px solid', borderColor: 'rgba(0,0,0,0.05)' }}>
+        <Box display="flex" alignItems="center" gap={1.5}>
+            {icon && <Box color="text.secondary" display="flex" sx={{ opacity: 0.7 }}>{icon}</Box>}
+            <Typography variant="body2" color="text.secondary" fontWeight={500}>{label}</Typography>
+        </Box>
+        <Typography variant="body1" fontFamily="monospace" fontWeight="bold" color="text.primary">
+            {value}
+        </Typography>
+    </Box>
+);
+
+const HistoryBlock = ({ label, energyIn, energyOut }: { label: string, energyIn?: number, energyOut?: number }) => (
+    <Box flex={1} textAlign="center">
+        <Typography variant="caption" color="text.secondary" fontWeight="bold" display="block" mb={1}>
+            {label}
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'rgba(0,0,0,0.01)', border: 'none', borderRadius: 2 }}>
+            <Box display="flex" justifyContent="space-between" mb={0.5}>
+                <Typography variant="caption" color="text.secondary">In</Typography>
+                <Typography variant="caption" fontFamily="monospace" fontWeight="bold" color="success.main">
+                    {formatKWh(energyIn)}
+                </Typography>
+            </Box>
+            <Box display="flex" justifyContent="space-between">
+                <Typography variant="caption" color="text.secondary">Out</Typography>
+                <Typography variant="caption" fontFamily="monospace" fontWeight="bold" color="warning.main">
+                    {formatKWh(energyOut)}
+                </Typography>
+            </Box>
+        </Paper>
+    </Box>
+);
+
+const UnknownTile = ({ label, value }: { label: string; value?: number }) => (
+    <Grid size={{ xs: 6, sm: 3 }}>
+        <Paper variant="outlined" sx={{ p: 1.5, textAlign: 'center', bgcolor: 'rgba(0,0,0,0.02)', borderStyle: 'dashed' }}>
+            <Typography variant="caption" color="text.secondary" display="block" noWrap title={label}>
+                {label}
+            </Typography>
+            <Typography variant="body2" fontWeight="bold" fontFamily="monospace" color="text.disabled">
+                {value !== undefined ? value : '--'}
+            </Typography>
+        </Paper>
+    </Grid>
+);
 
 export const StateWidget = () => {
     const { connectionState } = useBLE();
     const isConnected = connectionState === ConnectionState.CONNECTED;
-    
+
     const data = useVenusData(COMMAND_ID.STATE);
+    const attrs = data?.attributes;
 
     return (
         <Paper elevation={3} sx={{ p: 0, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 2, minHeight: '72px', bgcolor: 'secondary.main', color: 'secondary.contrastText', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <SpeedIcon />
-                <Typography variant="h6" fontWeight="bold">Realtime State</Typography>
+            <Box sx={{ p: 2, minHeight: '72px', bgcolor: 'secondary.main', color: 'secondary.contrastText', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                    <SpeedIcon />
+                    <Typography variant="h6" fontWeight="bold">State</Typography>
+                </Box>
+                {attrs && attrs.InverterState !== undefined && (
+                    <Chip
+                        label={getInverterStateLabel(attrs.InverterState)}
+                        size="small"
+                        sx={{
+                            bgcolor: 'rgba(255,255,255,0.9)',
+                            color: getInverterStateColor(attrs.InverterState),
+                            fontWeight: 'bold'
+                        }}
+                    />
+                )}
             </Box>
 
-            <Box sx={{ p: 3, flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                 {!isConnected ? (
-                    <Typography variant="body2" color="text.secondary">Not connected</Typography>
-                ) : !data ? (
-                    <Box textAlign="center">
-                        <CircularProgress size={20} sx={{ mb: 1 }} />
+                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                        <Typography variant="body2" color="text.secondary">Waiting for connection...</Typography>
+                    </Box>
+                ) : !attrs ? (
+                    <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="100%">
+                        <CircularProgress size={24} sx={{ mb: 1 }} />
                         <Typography variant="caption" display="block" color="text.secondary">
                             Waiting for first poll...
                         </Typography>
                     </Box>
                 ) : (
-                    <Box textAlign="center">
-                        <Typography color="text.secondary">
-                            State Data Received
-                        </Typography>
-                    </Box>
+                    <Stack spacing={3}>
+                        <Box>
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                <SyncAltIcon fontSize="small" color="primary" />
+                                <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                                    LIVE READINGS
+                                </Typography>
+                            </Box>
+                            <Box sx={{ px: 1 }}>
+                                <ReadingRow label="State of Charge" value={formatPct(attrs.SoC)} icon={<BatteryStdIcon fontSize="small" />} />
+                                <ReadingRow label="Remaining Energy" value={formatKWh(attrs.RemainingEnergy, 100)} icon={<BatteryStdIcon fontSize="small" />} />
+                                <ReadingRow label="Battery Power" value={formatW(attrs.BatteryPower)} icon={<ElectricMeterIcon fontSize="small" />} />
+                                <ReadingRow label="Grid Power" value={formatW(attrs.GridPower)} icon={<ElectricMeterIcon fontSize="small" />} isLast />
+                            </Box>
+                        </Box>
+
+                        <Divider />
+
+                        <Box>
+                            <Box display="flex" alignItems="center" gap={1} mb={2}>
+                                <TimelineIcon fontSize="small" color="primary" />
+                                <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                                    ENERGY STATISTICS
+                                </Typography>
+                            </Box>
+                            <Stack direction="row" spacing={2}>
+                                <HistoryBlock label="TODAY" energyIn={attrs.DailyEnergyIn} energyOut={attrs.DailyEnergyOut} />
+                                <HistoryBlock label="THIS MONTH" energyIn={attrs.MonthlyEnergyIn} energyOut={attrs.MonthlyEnergyOut} />
+                                <HistoryBlock label="LIFETIME" energyIn={attrs.TotalEnergyIn} energyOut={attrs.TotalEnergyOut} />
+                            </Stack>
+                        </Box>
+
+                        <Divider />
+
+                        <Box>
+                            <Box display="flex" alignItems="center" gap={1} mb={2}>
+                                <HelpOutlineIcon fontSize="small" color="disabled" />
+                                <Typography variant="subtitle2" color="text.disabled" fontWeight="bold">
+                                    TBD
+                                </Typography>
+                            </Box>
+                            <Grid container spacing={1.5}>
+                                <UnknownTile label="PWR_01" value={attrs.UnknownPower01} />
+                                <UnknownTile label="PWR_02" value={attrs.UnknownPower02} />
+                                <UnknownTile label="PWR_03" value={attrs.UnknownPower03} />
+                                <UnknownTile label="PWR_05" value={attrs.UnknownPower05} />
+                            </Grid>
+                        </Box>
+
+                    </Stack>
                 )}
             </Box>
         </Paper>
