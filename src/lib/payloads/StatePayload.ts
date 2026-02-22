@@ -94,7 +94,7 @@ export class StatePayload extends VenusPayload {
             
             attrs.UnknownPower05 = view.getInt16(146, true);
 
-            attrs.BLEDisabled = bytes[148] === 0x01;
+            attrs.BLEDisabled = bytes[148] === 0x00;
             attrs.DepthOfDischarge = bytes[149];
             attrs.LEDLight = bytes[152] === 0x01;
         }
