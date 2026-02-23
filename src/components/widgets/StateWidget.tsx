@@ -36,8 +36,8 @@ const getInverterStateColor = (state?: number) => {
     }
 };
 
-const formatKWh = (val: number | undefined, div: number = 1000) =>
-    val !== undefined ? `${(val / div).toFixed(2)} kWh` : '--';
+const formatKWh = (val: number | undefined) =>
+    val !== undefined ? `${(val / 1000).toFixed(2)} kWh` : '--';
 
 const formatW = (val: number | undefined) =>
     val !== undefined ? `${val} W` : '--';
@@ -142,7 +142,7 @@ export const StateWidget = () => {
                             </Box>
                             <Box sx={{ px: 1 }}>
                                 <ReadingRow label="State of Charge" value={formatPct(attrs.SoC)} icon={<BatteryStdIcon fontSize="small" />} />
-                                <ReadingRow label="Remaining Energy" value={formatKWh(attrs.RemainingEnergy, 100)} icon={<BatteryStdIcon fontSize="small" />} />
+                                <ReadingRow label="Remaining Energy" value={formatKWh(attrs.RemainingEnergy)} icon={<BatteryStdIcon fontSize="small" />} />
                                 <ReadingRow label="Battery Power" value={formatW(attrs.BatteryPower)} icon={<ElectricMeterIcon fontSize="small" />} />
                                 <ReadingRow label="Grid Power" value={formatW(attrs.GridPower)} icon={<ElectricMeterIcon fontSize="small" />} isLast />
                             </Box>

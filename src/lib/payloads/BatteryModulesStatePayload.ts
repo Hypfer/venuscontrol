@@ -30,7 +30,6 @@ export class BatteryModulesStatePayload extends VenusPayload {
             const rawSoc = view.getUint16(offset, true);
             const soc = rawSoc / 10.0;
 
-            // FIXME: Might be the status of the module? TBD
             const status = view.getUint8(offset + 2);
 
             // FIXME: Might be the temp of the module? TBD

@@ -10,19 +10,19 @@ export interface StateAttributes {
 
     // Not all of this is usable, given that the battery won't discharge below 10%. Not sure why it gives us this number
     // Or maybe it does, but just in emergency power mode?
-    RemainingEnergy: number;
+    RemainingEnergy: number; // Wh
     SoC: number;
     
     // These must need a time reference. FIXME: how does the thing even know the time? And can we know which time it knows?
-    DailyEnergyIn: number;
-    DailyEnergyOut: number;
-    MonthlyEnergyIn: number;
-    MonthlyEnergyOut: number;
+    DailyEnergyIn: number; // Wh
+    DailyEnergyOut: number; // Wh
+    MonthlyEnergyIn: number; // Wh
+    MonthlyEnergyOut: number; // Wh
     
     WorkMode: number; // As per WORK_MODE
-    
-    TotalEnergyIn: number;
-    TotalEnergyOut: number;
+
+    TotalEnergyIn: number; // Wh
+    TotalEnergyOut: number; // Wh
 
     BackupPower: boolean;
     DischargePowerLimit: number;
@@ -60,18 +60,18 @@ export class StatePayload extends VenusPayload {
 
             CTConnected: bytes[7] === 0x01,
             
-            RemainingEnergy: view.getInt16(9, true),
+            RemainingEnergy: view.getInt16(9, true) * 10,
             SoC: bytes[11],
             
-            DailyEnergyIn: view.getUint32(14, true),
-            MonthlyEnergyIn: view.getUint32(18, true),
-            DailyEnergyOut: view.getUint32(22, true),
-            MonthlyEnergyOut: view.getUint32(26, true),
+            DailyEnergyIn: view.getUint32(14, true) * 10,
+            MonthlyEnergyIn: view.getUint32(18, true), // For some reason provided by the FW with a different scale
+            DailyEnergyOut: view.getUint32(22, true) * 10,
+            MonthlyEnergyOut: view.getUint32(26, true) * 10,
             
             WorkMode: bytes[38],
 
-            TotalEnergyIn: view.getUint32(41, true),
-            TotalEnergyOut: view.getUint32(45, true),
+            TotalEnergyIn: view.getUint32(41, true) * 10,
+            TotalEnergyOut: view.getUint32(45, true) * 10,
 
             BackupPower: bytes[49] === 0x01,
             
