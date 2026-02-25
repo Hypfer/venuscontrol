@@ -129,7 +129,7 @@ export const BatteryModulesStateWidget = () => {
                                             <Stack direction="row" spacing={1} alignItems="center" title="Temperature">
                                                 <ThermostatIcon fontSize="small" color="action" />
                                                 <Typography variant="caption" color="text.secondary">
-                                                    {mod.temperature.toFixed(1)}°C (Maybe?)
+                                                    {mod.temperature.toFixed(1)}°C
                                                 </Typography>
                                             </Stack>
 
