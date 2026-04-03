@@ -15,7 +15,7 @@ import {GetWorkModeSettingsPayload} from "./GetWorkModeSettingsPayload.ts";
 import {BluetoothControlPayload} from "./BluetoothControlPayload.ts";
 
 export interface VenusPayloadStatic<T> {
-    new (...args: any[]): any; 
+    new (...args: any[]): any;
     FROM_BYTES(bytes: Uint8Array): T;
 }
 
@@ -25,13 +25,14 @@ export const VenusRegistry = {
 
     [COMMAND_ID.SET_WORK_MODE]: SetWorkModePayload,
     [COMMAND_ID.GET_WORK_MODE_SETTINGS]: GetWorkModeSettingsPayload,
-    
+
     [COMMAND_ID.BACKUP_POWER_CONTROL]: BackupPowerControlPayload,
     [COMMAND_ID.DISCHARGE_POWER_LIMIT_CONTROL]: DischargePowerLimitControlPayload,
-    
+    [COMMAND_ID.CHARGE_POWER_LIMIT_CONTROL]: DischargePowerLimitControlPayload,
+
     [COMMAND_ID.CT_TYPE_CONTROL]: CTTypeControlPayload,
     [COMMAND_ID.CT_MODE_CONTROL]: CTModeControlPayload,
-    
+
     [COMMAND_ID.CT_READINGS]: CTReadingsPayload,
 
     [COMMAND_ID.SURPLUS_FEED_IN_CONTROL]: SurplusFeedInControlPayload,

@@ -4,7 +4,7 @@ import { FactoryResetWidget } from '../widgets/FactoryResetWidget';
 import { StateWidget } from '../widgets/StateWidget';
 import { TogglesWidget } from "../widgets/TogglesWidget.tsx";
 import { DepthOfDischargeWidget } from "../widgets/DepthOfDischargeWidget.tsx";
-import { DischargePowerLimitWidget } from "../widgets/DischargePowerLimitWidget.tsx";
+import { PowerLimitsWidget } from "../widgets/PowerLimitsWidget.tsx";
 import { BatteryModulesStateWidget } from "../widgets/BatteryModulesStateWidget.tsx";
 import { CTWidget } from "../widgets/CTWidget.tsx";
 import { WorkModeWidget } from "../widgets/WorkModeWidget.tsx";
@@ -32,7 +32,10 @@ export const VenusAView = () => {
                     <DepthOfDischargeWidget min={30} max={88} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-                    <DischargePowerLimitWidget option1={800} option2={1200} />
+                    <PowerLimitsWidget
+                        dischargeOptions={[800, 1200, 1500]}
+                        chargeOptions={[800, 1200, 1500]}
+                    />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <DeviceInfoWidget />

@@ -1,0 +1,186 @@
+import React, { useEffect, useState, useRef } from 'react';
+import {
+    Paper, Typography, Box, CircularProgress,
+    ToggleButton, ToggleButtonGroup, Fade, Alert, Divider
+} from '@mui/material';
+import BoltIcon from '@mui/icons-material/Bolt';
+import BatteryChargingFullIcon from '@mui/icons-material/BatteryChargingFull';
+import BatterySaverIcon from '@mui/icons-material/BatterySaver';
+
+import { useBLE, useVenusData } from '../../contexts/BLEContext';
+import { ConnectionState } from '../../lib/BLEConnectionManager';
+import { COMMAND_ID } from "../../lib/VenusConst.ts";
+import { DischargePowerLimitControlPayload } from '../../lib/payloads/DischargePowerLimitControlPayload';
+import { ChargePowerLimitControlPayload } from '../../lib/payloads/ChargePowerLimitControlPayload';
+
+interface PowerLimitControlProps {
+    title: string;
+    icon: React.ReactNode;
+    serverValue?: number;
+    isConnected: boolean;
+    options: number[];
+    onSendCommand: (value: number) => Promise<void>;
+}
+
+const PowerLimitControl = ({ title, icon, serverValue, isConnected, options, onSendCommand }: PowerLimitControlProps) => {
+    const [pendingValue, setPendingValue] = useState<number | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const isPending = pendingValue !== null && pendingValue !== serverValue;
+    const displayValue = isPending ? pendingValue : (serverValue ?? null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
+
+    const handleChange = async (_: React.MouseEvent<HTMLElement>, newVal: number | null) => {
+        if (newVal === null || !isConnected || isPending) return;
+
+        setPendingValue(newVal);
+
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+            setPendingValue(null);
+        }, 7500);
+
+        try {
+            await onSendCommand(newVal);
+        } catch (err) {
+            console.error(`Failed to set ${title} limit`, err);
+            setPendingValue(null);
+        }
+    };
+
+    const isCustomValue = displayValue !== null && !options.includes(displayValue);
+
+    return (
+        <Box width="100%" textAlign="center" sx={{ py: 2 }}>
+            <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={2}>
+                {icon}
+                <Typography variant="subtitle1" fontWeight="bold">{title}</Typography>
+            </Box>
+
+            {serverValue === undefined ? (
+                <Box textAlign="center" height="60px" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+                    <CircularProgress size={24} />
+                    <Typography variant="caption" display="block" mt={1}>Syncing...</Typography>
+                </Box>
+            ) : (
+                <>
+                    <ToggleButtonGroup
+                        value={displayValue}
+                        exclusive
+                        onChange={handleChange}
+                        disabled={!isConnected || isPending}
+                        fullWidth
+                        color="primary"
+                        sx={{ mb: 1 }}
+                    >
+                        {options.map(opt => (
+                            <ToggleButton key={opt} value={opt} sx={{ py: 1.5, fontWeight: 'bold' }}>
+                                {opt} W
+                            </ToggleButton>
+                        ))}
+                    </ToggleButtonGroup>
+
+                    <Box height={24} display="flex" justifyContent="center" alignItems="center">
+                        {isPending && (
+                            <Fade in={true}>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <CircularProgress size={16} color="inherit" />
+                                    <Typography variant="caption">Updating...</Typography>
+                                </Box>
+                            </Fade>
+                        )}
+                    </Box>
+
+                    {isCustomValue && !isPending && (
+                        <Alert severity="info" icon={false} sx={{ mt: 1, py: 0, justifyContent: 'center' }}>
+                            Custom Value: {displayValue} W
+                        </Alert>
+                    )}
+                </>
+            )}
+        </Box>
+    );
+};
+
+interface Props {
+    dischargeOptions?: number[];
+    chargeOptions?: number[];
+}
+
+export const PowerLimitsWidget = ({
+  dischargeOptions = [800, 1200],
+  chargeOptions = [600, 1200]
+}: Props) => {
+    const { sendPacket, connectionState, pollState } = useBLE();
+    const isConnected = connectionState === ConnectionState.CONNECTED;
+
+    const stateData = useVenusData(COMMAND_ID.STATE);
+
+    const serverDischarge = stateData?.attributes.DischargePowerLimit;
+    const serverCharge = stateData?.attributes.ChargePowerLimit;
+
+    const setDischargeLimit = async (value: number) => {
+        const payload = new DischargePowerLimitControlPayload(value);
+        await sendPacket(COMMAND_ID.DISCHARGE_POWER_LIMIT_CONTROL, payload.toBytes());
+        pollState();
+    };
+
+    const setChargeLimit = async (value: number) => {
+        const payload = new ChargePowerLimitControlPayload(value);
+        await sendPacket(COMMAND_ID.CHARGE_POWER_LIMIT_CONTROL, payload.toBytes());
+        pollState();
+    };
+
+    return (
+        <Paper elevation={3} sx={{ p: 0, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ p: 2, minHeight: '72px', bgcolor: 'secondary.dark', color: 'secondary.contrastText', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <BoltIcon />
+                <Typography variant="h6" fontWeight="bold" lineHeight={1.2}>
+                    Power Limits
+                </Typography>
+            </Box>
+
+            <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                {!isConnected ? (
+                    <Box display="flex" flexGrow={1} alignItems="center" justifyContent="center">
+                        <Typography variant="body2" color="text.secondary">Waiting for connection...</Typography>
+                    </Box>
+                ) : (
+                    <>
+                        <PowerLimitControl
+                            title="Discharge Limit"
+                            icon={<BatterySaverIcon color="action" />}
+                            serverValue={serverDischarge}
+                            isConnected={isConnected}
+                            options={dischargeOptions}
+                            onSendCommand={setDischargeLimit}
+                        />
+
+                        <Divider sx={{ my: 1 }} />
+
+                        <PowerLimitControl
+                            title="Charge Limit"
+                            icon={<BatteryChargingFullIcon color="action" />}
+                            serverValue={serverCharge}
+                            isConnected={isConnected}
+                            options={chargeOptions}
+                            onSendCommand={setChargeLimit}
+                        />
+
+                        <Box mt="auto" pt={2} textAlign="center">
+                            <Typography variant="caption" color="text.secondary">
+                                Something something local regulations.<br/>
+                                Keep in mind that they might actually exist for a reason
+                            </Typography>
+                        </Box>
+                    </>
+                )}
+            </Box>
+        </Paper>
+    );
+};

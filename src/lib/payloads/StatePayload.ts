@@ -12,26 +12,29 @@ export interface StateAttributes {
     // Or maybe it does, but just in emergency power mode?
     RemainingEnergy: number; // Wh
     SoC: number;
-    
+
     // These must need a time reference. FIXME: how does the thing even know the time? And can we know which time it knows?
     DailyEnergyIn: number; // Wh
     DailyEnergyOut: number; // Wh
     MonthlyEnergyIn: number; // Wh
     MonthlyEnergyOut: number; // Wh
-    
+
     WorkMode: number; // As per WORK_MODE
 
     TotalEnergyIn: number; // Wh
     TotalEnergyOut: number; // Wh
 
     BackupPower: boolean;
+    ChargePowerLimit: number;
     DischargePowerLimit: number;
     CTType: number; // As per CT_TYPE
     Phase: number; // As per PHASE
     CTMode: number; // As per CT_MODE
 
+    CommunicationModuleFirmwareVersion: string;
+
     SurplusFeedIn?: boolean
-    
+
     UnknownPower02?: number;
     UnknownPower03?: number;
     GridPower?: number;
@@ -59,39 +62,42 @@ export class StatePayload extends VenusPayload {
             InverterState: bytes[4],
 
             CTConnected: bytes[7] === 0x01,
-            
+
             RemainingEnergy: view.getInt16(9, true) * 10,
             SoC: bytes[11],
-            
+
             DailyEnergyIn: view.getUint32(14, true) * 10,
             MonthlyEnergyIn: view.getUint32(18, true), // For some reason provided by the FW with a different scale
             DailyEnergyOut: view.getUint32(22, true) * 10,
             MonthlyEnergyOut: view.getUint32(26, true) * 10,
-            
+
             WorkMode: bytes[38],
 
             TotalEnergyIn: view.getUint32(41, true) * 10,
             TotalEnergyOut: view.getUint32(45, true) * 10,
 
             BackupPower: bytes[49] === 0x01,
-            
+
             // FIXME Maybe the 4 MPPT hide here? in 50-73? Or maybe not
 
+            ChargePowerLimit: view.getUint16(72, true),
             DischargePowerLimit: view.getUint16(74, true),
             CTType: bytes[76],
             Phase: bytes[77],
             CTMode: bytes[78],
+
+            CommunicationModuleFirmwareVersion: new TextDecoder().decode(bytes.slice(81, 93)),
         };
-        
+
         if (bytes.length > 110) {
             attrs.SurplusFeedIn = bytes[133] === 0x01;
-            
+
             attrs.UnknownPower02 = view.getInt16(140, true);
             attrs.UnknownPower03 = view.getInt16(142, true);
-            
+
             // Inverted, because the reported value is from a battery perspective, which is incorrect
             attrs.GridPower = view.getInt16(144, true) * -1 // FIXME: verify
-            
+
             attrs.UnknownPower05 = view.getInt16(146, true);
 
             attrs.BluetoothEnabled = bytes[148] === 0x01;
