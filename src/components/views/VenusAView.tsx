@@ -20,7 +20,7 @@ export const VenusAView = () => {
                     <BatteryModulesStateWidget />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-                    <WorkModeWidget scheduleItemMaxPower={1200} scheduleItemUPSSupported={true} />
+                    <WorkModeWidget scheduleItemMaxPower={1500} scheduleItemUPSSupported={true} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <CTWidget />
