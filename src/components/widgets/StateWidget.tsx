@@ -7,6 +7,7 @@ import ElectricMeterIcon from '@mui/icons-material/ElectricMeter';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import SolarPowerIcon from '@mui/icons-material/SolarPower';
 
 import { useBLE, useVenusData } from '../../contexts/BLEContext';
 import { ConnectionState } from '../../lib/BLEConnectionManager';
@@ -144,7 +145,11 @@ export const StateWidget = () => {
                                 <ReadingRow label="State of Charge" value={formatPct(attrs.SoC)} icon={<BatteryStdIcon fontSize="small" />} />
                                 <ReadingRow label="Remaining Energy" value={formatKWh(attrs.RemainingEnergy)} icon={<BatteryStdIcon fontSize="small" />} />
                                 <ReadingRow label="Battery Power" value={formatW(attrs.BatteryPower)} icon={<ElectricMeterIcon fontSize="small" />} />
-                                <ReadingRow label="Grid Power" value={formatW(attrs.GridPower)} icon={<ElectricMeterIcon fontSize="small" />} isLast />
+                                <ReadingRow label="Grid Power" value={formatW(attrs.GridPower)} icon={<ElectricMeterIcon fontSize="small" />} />
+                                <ReadingRow label="PV 1" value={formatW(attrs.MPPT1Power)} icon={<SolarPowerIcon fontSize="small" />} />
+                                <ReadingRow label="PV 2" value={formatW(attrs.MPPT2Power)} icon={<SolarPowerIcon fontSize="small" />} />
+                                <ReadingRow label="PV 3" value={formatW(attrs.MPPT3Power)} icon={<SolarPowerIcon fontSize="small" />} />
+                                <ReadingRow label="PV 4" value={formatW(attrs.MPPT4Power)} icon={<SolarPowerIcon fontSize="small" />} isLast />
                             </Box>
                         </Box>
 

@@ -35,6 +35,15 @@ export interface StateAttributes {
 
     SurplusFeedIn?: boolean
 
+    MPPT1Power?: number; // W
+    MPPT1Enabled?: boolean;
+    MPPT2Power?: number; // W
+    MPPT2Enabled?: boolean;
+    MPPT3Power?: number; // W
+    MPPT3Enabled?: boolean;
+    MPPT4Power?: number; // W
+    MPPT4Enabled?: boolean;
+
     UnknownPower02?: number;
     UnknownPower03?: number;
     GridPower?: number;
@@ -78,8 +87,6 @@ export class StatePayload extends VenusPayload {
 
             BackupPower: bytes[49] === 0x01,
 
-            // FIXME Maybe the 4 MPPT hide here? in 50-73? Or maybe not
-
             ChargePowerLimit: view.getUint16(72, true),
             DischargePowerLimit: view.getUint16(74, true),
             CTType: bytes[76],
@@ -90,6 +97,15 @@ export class StatePayload extends VenusPayload {
         };
 
         if (bytes.length > 110) {
+            attrs.MPPT1Power = view.getUint16(107, true) / 10;
+            attrs.MPPT1Enabled = bytes[109] === 0x01;
+            attrs.MPPT2Power = view.getUint16(110, true) / 10;
+            attrs.MPPT2Enabled = bytes[112] === 0x01;
+            attrs.MPPT3Power = view.getUint16(113, true) / 10;
+            attrs.MPPT3Enabled = bytes[115] === 0x01;
+            attrs.MPPT4Power = view.getUint16(116, true) / 10;
+            attrs.MPPT4Enabled = bytes[118] === 0x01;
+
             attrs.SurplusFeedIn = bytes[133] === 0x01;
 
             attrs.UnknownPower02 = view.getInt16(140, true);
